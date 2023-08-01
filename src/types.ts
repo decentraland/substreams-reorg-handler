@@ -1,4 +1,6 @@
 import type { IFetchComponent } from "@well-known-components/http-server"
+import type { IPgComponent } from "@well-known-components/pg-component"
+import type { DecentralandSignatureContext } from "decentraland-crypto-middleware"
 import type {
   IConfigComponent,
   ILoggerComponent,
@@ -6,6 +8,7 @@ import type {
   IBaseComponent,
   IMetricsComponent,
 } from "@well-known-components/interfaces"
+import { IReOrgComponent } from "./logic/reorg/types"
 import { metricDeclarations } from "./metrics"
 
 export type GlobalContext = {
@@ -19,6 +22,8 @@ export type BaseComponents = {
   server: IHttpServerComponent<GlobalContext>
   fetch: IFetchComponent
   metrics: IMetricsComponent<keyof typeof metricDeclarations>
+  database: IPgComponent
+  reorg: IReOrgComponent
 }
 
 // components used in runtime
@@ -44,3 +49,16 @@ export type HandlerContextWithPath<
 >
 
 export type Context<Path extends string = any> = IHttpServerComponent.PathAwareContext<GlobalContext, Path>
+
+export enum StatusCode {
+  OK = 200,
+  CREATED = 201,
+  BAD_REQUEST = 400,
+  UNAUTHORIZED = 401,
+  NOT_FOUND = 404,
+  LOCKED = 423,
+  CONFLICT = 409,
+  ERROR = 500,
+}
+
+export type AuthenticatedContext<Path extends string = any> = Context<Path> & DecentralandSignatureContext
