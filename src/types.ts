@@ -1,6 +1,6 @@
 import type { IFetchComponent } from "@well-known-components/http-server"
 import type { IPgComponent } from "@well-known-components/pg-component"
-import type * as authorizationMiddleware from "decentraland-crypto-middleware"
+import type { DecentralandSignatureContext } from "decentraland-crypto-middleware"
 import type {
   IConfigComponent,
   ILoggerComponent,
@@ -61,5 +61,4 @@ export enum StatusCode {
   ERROR = 500,
 }
 
-export type AuthenticatedContext<Path extends string = any> = Context<Path> &
-  authorizationMiddleware.DecentralandSignatureContext
+export type AuthenticatedContext<Path extends string = any> = Context<Path> & DecentralandSignatureContext

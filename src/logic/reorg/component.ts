@@ -37,6 +37,7 @@ export function createReOrgComponent(components: Pick<AppComponents, "database">
       return Promise.resolve()
     } catch (e) {
       console.error(e)
+      await client.query("ROLLBACK")
       throw new HttpError("Couldn't handle the ReOrg correctly", StatusCode.BAD_REQUEST)
     } finally {
       client.release()

@@ -34,7 +34,6 @@ describe("ReOrg Component", () => {
       const blockNumber = 12345
       const schema = "mySchema"
       const result = await reOrgComponent.handleReOrg({ blockNumber, schema })
-      console.log("result: ", result)
       await expect(result).toBeUndefined()
 
       expect(dbClientQueryMock).toHaveBeenCalledTimes(4) // 1 for the BEGIN, 1 to get table names, 1 for the DELETE, 1 for the COMMIT
@@ -53,7 +52,7 @@ describe("ReOrg Component", () => {
       const reOrgComponent = await createReOrgComponent({ database: pg })
 
       await expect(reOrgComponent.handleReOrg({ blockNumber, schema })).rejects.toThrow(HttpError)
-      expect(dbClientQueryMock).toHaveBeenCalled()
+      expect(dbClientQueryMock).toHaveBeenCalledTimes(2) // 1 for the BEGIN, 1 for the ROLLBACK
       expect(dbClientReleaseMock).toHaveBeenCalled()
     })
   })
