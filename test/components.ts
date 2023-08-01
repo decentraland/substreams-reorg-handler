@@ -23,7 +23,9 @@ export const test = createRunner<TestComponents>({
 async function initComponents(): Promise<TestComponents> {
   const components = await originalInitComponents()
 
-  const { config } = components
+  const { config, database } = components
+
+  jest.spyOn(database, 'start').mockResolvedValue(undefined)
 
   return {
     ...components,
