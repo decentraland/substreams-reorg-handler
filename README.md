@@ -1,50 +1,38 @@
-# template-server
+## Reorg Handler
+Endpoint: `/v1/reorg-handler`
 
-## Architecture
+The Reorg Handler provides an endpoint to handle blockchain reorganizations. It takes in the last valid block number and the corresponding schema to handle the reorganization accordingly.
 
-Extension of "ports and adapters architecture", also known as "hexagonal architecture".
+### Type
 
-With this architecture, code is organized into several layers: logic, controllers, adapters, and components (ports).
+This handler function does not specifically return a structured object. It returns an appropriate response based on the provided parameters.
 
-## Application lifecycle
+### Query Params:
 
-1. **Start application lifecycle** - Handled by [src/index.ts](src/index.ts) in only one line of code: `Lifecycle.run({ main, initComponents })`
-2. **Create components** - Handled by [src/components.ts](src/components.ts) in the function `initComponents`
-3. **Wire application & start components** - Handled by [src/service.ts](src/service.ts) in the funciton `main`.
-   1. First wire HTTP routes and other events with [controllers](#src/controllers)
-   2. Then call to `startComponents()` to initialize the components (i.e. http-listener)
+- `last_valid_block`: The last block number that is considered valid. It's used to determine the point at which the reorganization must be handled. Type: `number`.
+- `schema`: The schema to be used in handling the reorganization. Type: `string`.
 
-The same lifecycle is also valid for tests: [test/components.ts](test/components.ts)
+### Request Headers:
 
-## Namespaces
+- The request may include standard HTTP headers.
 
-### src/logic
+### Response:
 
-Deals with pure business logic and shouldn't have side-effects or throw exceptions.
+- `200 OK`: Successful handling of the reorganization.
+- `400 BAD REQUEST`: If the `last_valid_block` or `schema` parameters are missing, the endpoint will return a 400 Bad Request status code with the message "Missing parameters."
 
-### src/controllers
+### Example Usage:
 
-The "glue" between all the other layers, orchestrating calls between pure business logic and adapters.
+To invoke the reorg handler with a specific block number and schema, you can make an HTTP request to the endpoint:
 
-Controllers always receive an hydrated context containing components and parameters to call the business logic e.g:
-
-```ts
-// handler for /ping
-export async function pingHandler(context: {
-  url: URL // parameter added by http-server
-  components: AppComponents // components of the app, part of the global context
-}) {
-  components.metrics.increment("test_ping_counter")
-  return { status: 200 }
-}
+```http
+GET /v1/reorg-handler?last_valid_block=12345&schema=mySchema
 ```
 
-### src/adapters
+### Code Implementation:
 
-The layer that converts external data representations into internal ones, and vice-versa. Acts as buffer to protect the service from changes in the outside world; when a data representation changes, you only need to change how the adapters deal with it.
+The handler function for this endpoint is implemented in the `createReorgHandler` function, which accepts the reorg components and returns the request handler to process the reorganization.
 
-### src/components.ts
+### Note:
 
-We use the components abstraction to organize our adapters (e.g. HTTP client, database client, redis client) and any other logic that needs to track mutable state or encode dependencies between stateful components. For every environment (e.g. test, e2e, prod, staging...) we have a different version of our component systems, enabling us to easily inject mocks or different implementations for different contexts.
-
-We make components available to incoming http and kafka handlers. For instance, the http-server handlers have access to things like the database or HTTP components, and pass them down to the controller level for general use.
+Make sure to provide both the `last_valid_block` and `schema` parameters in the query string for the handler to process the reorganization correctly. If any of these parameters are missing, the handler will return a bad request response.

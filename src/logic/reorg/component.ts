@@ -1,14 +1,15 @@
 import SQL from "sql-template-strings"
-import { AppComponents } from "../../types"
+import { AppComponents, StatusCode } from "../../types"
 import { HttpError } from "../http/response"
 import { IReOrgComponent, ReOrgOptions } from "./types"
 
-export async function createReOrgComponent(components: Pick<AppComponents, "database">): Promise<IReOrgComponent> {
+export function createReOrgComponent(components: Pick<AppComponents, "database">): IReOrgComponent {
   const { database } = components
 
   async function handleReOrg(options: ReOrgOptions) {
     const { blockNumber, schema } = options
-    const client = await database.getPool().connect()
+    const pool = database.getPool()
+    const client = await pool.connect()
     try {
       await client.query("BEGIN")
 
@@ -17,7 +18,8 @@ export async function createReOrgComponent(components: Pick<AppComponents, "data
             FROM information_schema.columns
             WHERE table_schema = ${schema} AND column_name = 'block_number';`
 
-      const { rows } = await client.query(tableQuery)
+      const response = await client.query(tableQuery)
+      const rows = response.rows
 
       for (const row of rows) {
         const { table_name } = row
@@ -35,7 +37,7 @@ export async function createReOrgComponent(components: Pick<AppComponents, "data
       return Promise.resolve()
     } catch (e) {
       console.error(e)
-      throw new HttpError("Couldn't fetch the catalog with the filters provided", 400)
+      throw new HttpError("Couldn't handle the ReOrg correctly", StatusCode.BAD_REQUEST)
     } finally {
       client.release()
     }

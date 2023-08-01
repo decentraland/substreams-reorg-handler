@@ -1,32 +1,36 @@
-import { IHttpServerComponent } from "@well-known-components/interfaces"
 import { Params } from "../../logic/http/params"
-import { asJSON } from "../../logic/http/response"
-import { AppComponents, AuthenticatedContext, StatusCode } from "../../types"
+import { HandlerContextWithPath, StatusCode } from "../../types"
 
-export function createReorgHandler(
-  components: Pick<AppComponents, "reorg" | "config">
-): IHttpServerComponent.IRequestHandler<AuthenticatedContext<"/reorg">> {
-  const { reorg } = components
+export async function handleReOrg(
+  context: Pick<HandlerContextWithPath<"reorg", "/v1/reorg-handler">, "components" | "url">
+) {
+  const {
+    components: { reorg },
+    url,
+  } = context
+  const params = new Params(url.searchParams)
+  const blockNumber = params.getNumber("last_valid_block")
+  const schema = params.getString("schema")
 
-  return async (context) => {
-    const params = new Params(context.url.searchParams)
-    const blockNumber = params.getNumber("last_valid_block")
-    const schema = params.getString("schema")
-
-    const headers = context.request.headers
-
-    if (!blockNumber || !schema) {
-      return {
-        status: StatusCode.BAD_REQUEST,
-        body: "Missing parameters",
-      }
+  if (!blockNumber || !schema) {
+    return {
+      status: StatusCode.BAD_REQUEST,
+      body: {
+        ok: false,
+        message: "Missing parameters",
+      },
     }
+  }
 
-    return asJSON(async () => {
-      return await reorg.handleReOrg({
-        blockNumber,
-        schema,
-      })
-    })
+  await reorg.handleReOrg({
+    blockNumber,
+    schema,
+  })
+
+  return {
+    status: StatusCode.OK,
+    body: {
+      ok: true,
+    },
   }
 }
