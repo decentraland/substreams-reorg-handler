@@ -8,6 +8,7 @@ export function createReOrgComponent(components: Pick<AppComponents, "database">
 
   async function handleReOrg(options: ReOrgOptions) {
     const { blockNumber, schema } = options
+    console.log(`Handling ReOrg with blockNumber: ${blockNumber} and schema: ${schema}`)
     const pool = database.getPool()
     const client = await pool.connect()
     try {
